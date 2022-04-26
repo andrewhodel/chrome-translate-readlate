@@ -75,7 +75,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 					//console.log(c, words[c], translated_word);
 
 					// add words
-					new_text += '(<span style="font-size: .9em; color: #222;">' + words[c].toLowerCase() + '</span><a href="https://translate.google.com/?sl=ru&tl=en&text=' + encodeURI(translated_word) + '&op=translate" style="margin-left: 2px; font-size: .75em; color: #145A32;" target="_new">' + translated_word + '</a>) ';
+					new_text += '(<span style="display: inline-block; font-size: .9em; color: #222;">' + words[c].toLowerCase() + '</span><span href="https://translate.google.com/?sl=ru&tl=en&text=' + encodeURI(translated_word) + '&op=translate" style="display: inline-block; margin-left: 2px; font-size: .75em; color: #145A32;" target="_new">' + translated_word + '</span>) ';
 					c++;
 				}
 
@@ -156,7 +156,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 				var l = depths[depth_keys];
 
 				for (var p in l) {
-					if (l[p].tagName === 'PATH' || l[p].tagName === 'SVG') {
+					if (l[p].tagName === 'PATH' || l[p].tagName === 'SVG' || l[p].tagName === 'STYLE' || l[p].tagName === 'SCRIPT') {
 						// remove svg elements from the lowest start
 						//l[p].parentElement.removeChild(l[p]);
 						// from translation
@@ -174,6 +174,11 @@ chrome.action.onClicked.addListener(async (tab) => {
 
 				var c = 0;
 				while (c < l.length) {
+
+					if (l[c] === undefined) {
+						c++;
+						continue;
+					}
 
 					//console.log(l[c], current_lower_text, l[c].innerText, l[c].children.length);
 
@@ -204,7 +209,6 @@ chrome.action.onClicked.addListener(async (tab) => {
 					// innerText will not match because it will add \n where there are child elements that block
 					// unless you replace the \n characters
 					lower_text += String(l[c].innerText).replaceAll('\n', '');
-
 
 					c++;
 
@@ -300,44 +304,6 @@ chrome.action.onClicked.addListener(async (tab) => {
 				}
 
 				m.innerHTML = s;
-
-				/*
-
-				// get the positions of the inner elements per the .innerHTML string
-				var carats = s.split('<');
-				var n = 0;
-				while (n < carats.length) {
-
-					// find the end carats
-					var end_carats = carats[n].split('>');
-
-					if (end_carats.length === 1) {
-						// this is only a string
-						//console.log('len1', carats[n], end_carats);
-						text_to_replace = carats[n];
-					} else if (end_carats.length === 2) {
-						// this is a closing > and more text only
-						//console.log('len2', carats[n], end_carats);
-						text_to_replace = end_carats[1];
-					} else {
-
-						// invalid
-						console.log('invalid <> parsing', carats[n]);
-
-					}
-
-					n++;
-
-				}
-
-				// get each string between, before and after and inner elements
-				// and their start and end positions
-
-				// translate each string and replace the text at the positions
-
-				// assemble the new .innerHTML and modify the existing one
-
-				*/
 
 				c++;
 			}
