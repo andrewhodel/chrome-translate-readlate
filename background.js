@@ -40,9 +40,11 @@ chrome.action.onClicked.addListener(async (tab) => {
 				// semicolon space
 				// period space
 				// space
+				// newline
+				// tab
 				//var words = s.split(' ');
 				//console.log('translate_readlate_string()', s);
-				var words = s.split(/ \/ |, |; |\. | /);
+				var words = s.split(/ \/ |, |; |\. | |\n|\t/);
 				//console.log(words);
 
 				//console.log('words.length', words.length);
@@ -87,6 +89,8 @@ chrome.action.onClicked.addListener(async (tab) => {
 			var mod_contents_count = 0;
 			// these elements are ready to be translated as they will have no children
 			var translate_elements = [];
+			// these elements have mixed content
+			var mixed_elements = [];
 			// this ranks all the others
 			var depths = {};
 
@@ -116,59 +120,6 @@ chrome.action.onClicked.addListener(async (tab) => {
 						mod_contents(ele.children[c], depth + 1);
 						c++;
 					}
-
-					/*
-
-					// remove any inner elements and get the text that should be translated
-					var s = JSON.parse(JSON.stringify(String(ele.innerHTML)));
-
-					// remove comments
-					var re = /(?=<!--)([\s\S]*?)-->/gm;
-					s = s.replaceAll(re, '');
-
-					var carats = s.split('<');
-
-					var n = 0;
-					while (n < carats.length) {
-
-						if (carats[n].indexOf('path') === 0 || carats[n].indexOf('svg') === 0) {
-							// do not modify inside svg/path elements
-							//console.log('svg/path');
-							n++;
-							continue;
-						}
-
-						// find the end carats
-						var end_carats = carats[n].split('>');
-
-						var text_to_replace = '';
-
-						if (end_carats.length === 1) {
-							// this is only a string
-							//console.log('len1', carats[n], end_carats);
-							text_to_replace = carats[n];
-						} else if (end_carats.length === 2) {
-							// this is a closing > and more text only
-							//console.log('len2', carats[n], end_carats);
-							text_to_replace = end_carats[1];
-						} else {
-
-							// invalid
-							console.log('invalid <> parsing', carats[n]);
-
-						}
-
-						if (text_to_replace.indexOf('<svg') != -1 || text_to_replace.indexOf('<path') != -1) {
-							// invalid, do not parse svg
-						} else if (text_to_replace != '') {
-							//console.log(text_to_replace);
-							ele.innerHTML = translate_readlate_string(s, text_to_replace);
-						}
-
-						n++;
-					}
-
-					*/
 
 				} else {
 
@@ -240,7 +191,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 							//console.log('non child derived text');
 							//console.log(diff.length, diff);
 
-							// go through .innerHTML and replace the content outside that matches what is in diff
+							mixed_elements.push(l[c]);
 
 						}
 
@@ -270,6 +221,123 @@ chrome.action.onClicked.addListener(async (tab) => {
 				// and .innerHTML can be translated and styled
 				//translate_elements[c].innerText = 'TRANSLATED';
 				translate_elements[c].innerHTML = translate_readlate_string(translate_elements[c].innerText);
+
+				c++;
+			}
+
+			var c = 0;
+			while (c < mixed_elements.length) {
+
+				// these elements have mixed content, elements and text inside
+
+				// go through .innerHTML and replace the content outside that matches what is in diff
+				var m = mixed_elements[c];
+				//console.log('\n\nmixed_element', m);
+
+				var text_strings = [];
+				var n = 0;
+				var cn = mixed_elements[c].childNodes;
+				while (n < cn.length) {
+
+					if (cn[n].nodeType === Node.TEXT_NODE) {
+						//console.log('text', cn[n].data, cn[n].data.length);
+						// TEXT_NODE objects are inserted for block elements
+						if (cn[n].data !== '\n') {
+							// store each text string to be replaced in order
+							text_strings.push(cn[n].data);
+						}
+					}
+
+					n++;
+				}
+
+				// get the .innerHTML as a cloned string
+				var s = JSON.parse(JSON.stringify(String(m.innerHTML)));
+
+				// remove comments
+				var re = /(?=<!--)([\s\S]*?)-->/gm;
+				s = s.replaceAll(re, '');
+
+				// replace the text strings if there are any
+				if (text_strings.length > 0) {
+
+					//console.log(text_strings);
+
+					// test if the first text string is at the start in the element
+					if (s.indexOf(text_strings[0]) === 0) {
+						//console.log('replacing first in text_strings of element', text_strings[0]);
+						s = s.replace(text_strings[0], translate_readlate_string(text_strings[0]));
+						// remove it so if it is not found here the logic for finding it later works
+						text_strings.splice(0, 1);
+					}
+
+					// loop through each > to find the next text_strings string
+					var text_string_index = 0;
+					while (text_string_index < text_strings.length) {
+
+						// get the position of the current last ">text_string"
+						var at = s.indexOf('>' + text_strings[text_string_index]);
+						var ts = text_strings[text_string_index];
+
+						//console.log(ts, 'found at ' + at);
+
+						// text before the text_string
+						var first_part = s.slice(0, at+1);
+						//console.log('first_part', first_part);
+
+						// text after the text_string
+						var last_part = s.slice(at+1+ts.length);
+						//console.log('last_part', last_part);
+
+						// replace the string with the translated html string
+						var ns = first_part + translate_readlate_string(ts) + last_part;
+						s = ns;
+
+						text_string_index++;
+						n++;
+					}
+
+				}
+
+				m.innerHTML = s;
+
+				/*
+
+				// get the positions of the inner elements per the .innerHTML string
+				var carats = s.split('<');
+				var n = 0;
+				while (n < carats.length) {
+
+					// find the end carats
+					var end_carats = carats[n].split('>');
+
+					if (end_carats.length === 1) {
+						// this is only a string
+						//console.log('len1', carats[n], end_carats);
+						text_to_replace = carats[n];
+					} else if (end_carats.length === 2) {
+						// this is a closing > and more text only
+						//console.log('len2', carats[n], end_carats);
+						text_to_replace = end_carats[1];
+					} else {
+
+						// invalid
+						console.log('invalid <> parsing', carats[n]);
+
+					}
+
+					n++;
+
+				}
+
+				// get each string between, before and after and inner elements
+				// and their start and end positions
+
+				// translate each string and replace the text at the positions
+
+				// assemble the new .innerHTML and modify the existing one
+
+				*/
 
 				c++;
 			}
