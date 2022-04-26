@@ -75,7 +75,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 					//console.log(c, words[c], translated_word);
 
 					// add words
-					new_text += '(<span style="display: inline-block; font-size: .9em; color: #222;">' + words[c].toLowerCase() + '</span><span href="https://translate.google.com/?sl=ru&tl=en&text=' + encodeURI(translated_word) + '&op=translate" style="display: inline-block; margin-left: 2px; font-size: .75em; color: #145A32;" target="_new">' + translated_word + '</span>) ';
+					new_text += '(<span style="display: inline-block; font-size: .9em; color: #222;">' + words[c].toLowerCase() + '</span><a href="https://translate.google.com/?sl=ru&tl=en&text=' + encodeURI(translated_word) + '&op=translate" style="display: inline-block; margin-left: 2px; font-size: .75em; color: #145A32;" target="_new">' + translated_word + '</a>) ';
 					c++;
 				}
 
