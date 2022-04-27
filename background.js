@@ -253,6 +253,13 @@ chrome.action.onClicked.addListener(async (tab) => {
 						//console.log('text', cn[n].data, cn[n].data.length);
 						// TEXT_NODE objects are inserted for block elements
 						if (cn[n].data !== '\n') {
+
+							// replace any < or > to parse
+							// or make a list of the positions and handle them in the ">" parser
+							// the browsers parse each element inside <> to gain the attributes
+							cn[n].data = cn[n].data.replaceAll('>', '');
+							cn[n].data = cn[n].data.replaceAll('<', '');
+
 							// store each text string to be replaced in order
 							text_strings.push(cn[n].data);
 						}
