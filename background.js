@@ -67,10 +67,10 @@ chrome.action.onClicked.addListener(async (tab) => {
 
 					// order the words by most used
 					if (most_used_words[words[c]] === undefined) {
-						most_used_words[words[c]] = 0;
+						most_used_words[words[c].toLowerCase()] = 0;
 					}
 
-					most_used_words[words[c]]++;
+					most_used_words[words[c].toLowerCase()]++;
 
 					//console.log(c, words[c], translated_word);
 
@@ -335,6 +335,27 @@ chrome.action.onClicked.addListener(async (tab) => {
 				console.log(muw[c]);
 				c++;
 			}
+
+			// send the original words to improve the translation lists
+			// used by chrome-translate-readlate
+			/*
+			var r = new XMLHttpRequest();
+
+			r.addEventListener("load", function() {
+				console.log('muw sent');
+			});
+
+			r.open('POST', 'https://xyzbots.com:7555/words?key=wrong');
+
+			r.setRequestHeader('Content-Type', 'application/json');
+			var data = JSON.stringify({url: window.location.href, muw: muw});
+			//console.log('sending words data', data);
+			r.send(data);
+
+			r.addEventListener("error", function(err) {
+				console.log('muw send error', err);
+			});
+			*/
 
 			// return this back to chrome.scripting.executeScript->get_document()
 			return true;
