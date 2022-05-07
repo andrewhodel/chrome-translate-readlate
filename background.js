@@ -102,7 +102,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 					} else {
 						// show the original word and translated word
 						// use white-space: pre to maintain readability
-						new_text += '<span style="white-space: pre;">(<span style="display: inline-block;">' + words[c] + '</span><a href="https://translate.google.com/?sl=ru&tl=en&text=' + encodeURI(translated_word) + '&op=translate" style="display: inline-block; margin-left: 2px; font-size: .75em; color: #145A32;" target="_new">' + translated_word + '</a>) </span>';
+						new_text += '<span style="white-space: pre;">(<span style="display: inline-block;">' + words[c] + '</span><span style="display: inline-block; margin-left: 2px; font-size: .75em; color: #145A32;">' + translated_word + '</span>) </span>';
 					}
 					c++;
 				}
